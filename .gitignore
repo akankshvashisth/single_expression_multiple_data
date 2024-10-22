@@ -1,0 +1,50 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#visual studio
+*.vs
+*.pdb
+/compile_time_differentiation/compile_.a92e5cb2/x64/Debug
+/compile_time_differentiation/bin/release/gcc/compile_time_differentiation
+/compile_time_differentiation/bin/release/clang/compile_time_differentiation
+/compile_time_differentiation/bin/debug/gcc/compile_time_differentiation
+/compile_time_differentiation/bin/debug/clang/compile_time_differentiation
+/single_expression_multiple_data/bin/debug/clang/compile_time_differentiation
+/single_expression_multiple_data/bin/debug/clang/semd_01
+/single_expression_multiple_data/bin/debug/clang/single_expression_multiple_data
+/single_expression_multiple_data/bin/debug/gcc/compile_time_differentiation
+/single_expression_multiple_data/bin/debug/gcc/semd_01
+/single_expression_multiple_data/bin/release/clang/compile_time_differentiation
+/single_expression_multiple_data/bin/release/gcc/compile_time_differentiation
+/single_expression_multiple_data/bin/release/gcc/semd_01
+/single_expression_multiple_data/single_e.10f7b176/x64/Debug
