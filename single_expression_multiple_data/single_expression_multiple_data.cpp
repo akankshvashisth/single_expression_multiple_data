@@ -23,24 +23,25 @@ template <aks::simd::is_simd_c T,
           aks::simd::is_simd_c U,
           aks::simd::is_simd_c V>
 struct select_f<T, U, V> {
-  auto operator()(T x, U y, V z) const { return aks::simd::select(x, y, z); }
+  auto operator()(T x, U y, V z) const {
+    auto res = aks::simd::select(x, y, z);
+    // fmt::println("x = {}\ny = {}\nz = {}\nres = {}", x, y, z, res);
+    return res;
+  }
 };
 }  // namespace aks::semd::ops
 
-template <typename T>
-void simd_check_1d() {
+template <typename T, typename U>
+void simd_check(U const filter01, U const filter02) {
   using vec_t = T;
   using s_t = typename T::scalar_type;
   using mask_t = typename aks::simd::mask<typename T::spec>;
 
-  std::vector<vec_t> const xs{s_t{-1}, s_t{2}, s_t{5}};
-  std::array<vec_t, 8> ys{s_t{6}, s_t{1}, s_t{2}};
+  std::vector<vec_t> const xs{vec_t{s_t{-1}}, vec_t{s_t{2}}, vec_t{s_t{5}}};
+  std::array<vec_t, 3> ys{vec_t{s_t{6}}, vec_t{s_t{1}}, vec_t{s_t{2}}};
 
   aks::semd::semd x{xs};
   aks::semd::semd y{ys};
-
-  auto const mtrue = aks::simd::from_bools<mask_t>(true);
-  auto const mfalse = aks::simd::from_bools<mask_t>(false);
 
   fmt::println(" x = {}", x);
   fmt::println("-x = {}", -x);
@@ -50,58 +51,35 @@ void simd_check_1d() {
   fmt::println("x[1] = {}", x[1]);
   fmt::println("min  = {}", select(x < y, x, y));
 
-  fmt::println("select(x < y, x, y)  = {}", select(x < y, x, y));
-  fmt::println("select(x < y, x, 2)  = {}", select(x < y, x, vec_t{s_t{2}}));
-  fmt::println("select(x < y, 2, y)  = {}", select(x < y, vec_t{s_t{2}}, y));
-  fmt::println("select(x < y, 3, 2)  = {}",
+  fmt::println("select(x < y, x, y)    = {}", select(x < y, x, y));
+  fmt::println("select(x < y, x, 2)    = {}", select(x < y, x, vec_t{s_t{2}}));
+  fmt::println("select(x < y, 2, y)    = {}", select(x < y, vec_t{s_t{2}}, y));
+  fmt::println("select(x < y, 3, 2)    = {}",
                select(x < y, vec_t{s_t{3}}, vec_t{s_t{2}}));
-  fmt::println("select(mtrue, x, y)  = {}", select(mtrue, x, y));
-  fmt::println("select(mfalse, x, 2) = {}", select(mfalse, x, vec_t{s_t{2}}));
-  fmt::println("select(mfalse, 3, y) = {}", select(mfalse, vec_t{s_t{3}}, y));
-  fmt::println("sqrt(x) * sqrt(x)    = {}", sqrt(x) * sqrt(x));
-  fmt::println("2.0 * sqrt(x)        = {}", vec_t{2.0} * sqrt(x));
-  fmt::println("sqrt(x) * 2.0        = {}", sqrt(x) * vec_t{2.0});
+  fmt::println("select(filter01, x, y) = {}", select(filter01, x, y));
+  fmt::println("select(filter02, x, 2) = {}",
+               select(filter02, x, vec_t{s_t{2}}));
+  fmt::println("select(filter02, 3, y) = {}",
+               select(filter02, vec_t{s_t{3}}, y));
+  fmt::println("sqrt(x) * sqrt(x)      = {}", sqrt(x) * sqrt(x));
+  fmt::println("2.0 * sqrt(x)          = {}", vec_t{s_t{2}} * sqrt(x));
+  fmt::println("sqrt(x) * 2.0          = {}", sqrt(x) * vec_t{s_t{2}});
 }
 
 void simd_examples() {
-  simd_check_1d<aks::simd::vec1d>();
-  simd_check_1d<aks::simd::vec1f>();
-  simd_check_1d<aks::simd::vec1i>();
-
-  using aks::simd::vec4d;
-  using aks::simd::vec4d_mask;
-
-  std::vector<vec4d> const xs{vec4d{-1., 2., 5., 6.}, vec4d{8., 10., 1.2, 1.5}};
-  std::array<vec4d, 2> ys{vec4d{6., 1., 2., 8.}, vec4d{9., 10., 1.1, 1.6}};
-
-  aks::semd::semd x{xs};
-  aks::semd::semd y{ys};
-
-  auto mtrue = aks::simd::from_bools<vec4d_mask>(true, true, true, true);
-  auto mfalse = aks::simd::from_bools<vec4d_mask>(false, false, false, false);
-
-  fmt::println(" x = {}", x);
-  fmt::println("-x = {}", -x);
-  fmt::println(" y = {}", y);
-
-  fmt::println("x + y + x + y = {}", x + y + x + y);
-
-  fmt::println("x[1] = {}", x[1]);
-  fmt::println("min  = {}", select(x < y, x, y));
-
-  fmt::println("select(x < y, x, y)     = {}", select(x < y, x, y));
-  fmt::println("select(x < y, x, 2.0)   = {}", select(x < y, x, vec4d{2.0}));
-  fmt::println("select(x < y, 2.0, y)   = {}", select(x < y, vec4d{2.0}, y));
-
-  fmt::println("select(x < y, 3.0, 2.0) = {}",
-               select(x < y, vec4d{3.0}, vec4d{2.0}));
-  fmt::println("select(mtrue, x, y)     = {}", select(mtrue, x, y));
-  fmt::println("select(mfalse, x, 2.0)  = {}", select(mfalse, x, vec4d{2.0}));
-  fmt::println("select(mfalse, 3.0, y)  = {}", select(mfalse, vec4d{3.0}, y));
-
-  fmt::println("sqrt(x) * sqrt(x)       = {}", sqrt(x) * sqrt(x));
-  fmt::println("2.0 * sqrt(x)           = {}", vec4d{2.0} * sqrt(x));
-  fmt::println("sqrt(x) * 2.0           = {}", sqrt(x) * vec4d{2.0});
+  using namespace aks::simd;
+  simd_check<vec1d>(from_bools<mask<vec1d::spec>>(true),
+                    from_bools<mask<vec1d::spec>>(false));
+  simd_check<vec1f>(from_bools<mask<vec1f::spec>>(true),
+                    from_bools<mask<vec1f::spec>>(false));
+  simd_check<vec1i>(from_bools<mask<vec1i::spec>>(true),
+                    from_bools<mask<vec1i::spec>>(false));
+  simd_check<vec4d>(from_bools<mask<vec4d::spec>>(true, false, true, true),
+                    from_bools<mask<vec4d::spec>>(false, false, true, false));
+  simd_check<vec8f>(from_bools<mask<vec8f::spec>>(true, false, true, true,
+                                                  false, true, true, true),
+                    from_bools<mask<vec8f::spec>>(false, false, true, false,
+                                                  false, false, true, false));
 }
 
 #else
@@ -117,8 +95,7 @@ struct neg_f<std::string> {
 };
 }  // namespace aks::semd::ops
 
-int main() {
-  simd_examples();
+void semd_examples() {
   {
     std::vector<double> xs = {-1.0, 2.0, 3.0, 4.0};
     std::array<float, 4> ys = {1.0, -2.0, 5.0, 0.0};
@@ -172,5 +149,10 @@ int main() {
 
     fmt::println("min   = {}", select(x < y, x, y));
   }
+}
+
+int main() {
+  simd_examples();
+  semd_examples();
   return 0;
 }

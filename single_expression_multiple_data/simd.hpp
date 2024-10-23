@@ -349,7 +349,8 @@ struct vec4d_spec {
                                                       bool a1,
                                                       bool a2,
                                                       bool a3) {
-    return _mm256_set_pd(a3, a2, a1, a0);
+    return _mm256_castsi256_pd(_mm256_set_epi64x((a3 ? -1 : 0), (a2 ? -1 : 0),
+                                                 (a1 ? -1 : 0), (a0 ? -1 : 0)));
   }
 
   AKS_SIMD_OP_FUNC_PREFIX static simd_type select(mask_type a,
@@ -373,6 +374,132 @@ using vec4d_mask = simd::mask<avx::vec4d_spec>;
 }  // namespace aks
 
 #endif  // !AKS_SIMD_VEC4D_HPP__
+
+#ifndef AKS_SIMD_VEC8F_HPP__
+#define AKS_SIMD_VEC8F_HPP__
+
+namespace aks {
+namespace simd {
+namespace avx {
+namespace detail_vec8f {
+static auto const zeros{_mm256_setzero_ps()};
+static auto const neg_zeros{_mm256_set1_ps(-0.f)};
+}  // namespace detail_vec8f
+
+struct vec8f_spec {
+  using simd_type = __m256;
+  using mask_type = __m256;
+  using scalar_type = float;
+  static constexpr std::size_t size = 8;
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type set1(scalar_type v) {
+    return _mm256_set1_ps(v);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type setzero() {
+    return _mm256_setzero_ps();
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type add(simd_type a, simd_type b) {
+    return _mm256_add_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type sub(simd_type a, simd_type b) {
+    return _mm256_sub_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type mul(simd_type a, simd_type b) {
+    return _mm256_mul_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type div(simd_type a, simd_type b) {
+    return _mm256_div_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type neg(simd_type x) {
+    return _mm256_xor_ps(x, detail_vec8f::neg_zeros);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type sqrt(simd_type x) {
+    return _mm256_sqrt_ps(x);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type abs(simd_type x) {
+    return _mm256_andnot_ps(detail_vec8f::neg_zeros, x);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type eq(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_EQ_OQ);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type ne(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type lt(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_LT_OQ);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type le(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_LE_OQ);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type gt(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_GT_OQ);
+  };
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type ge(simd_type a, simd_type b) {
+    return _mm256_cmp_ps(a, b, _CMP_GE_OQ);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type and_(mask_type a, mask_type b) {
+    return _mm256_and_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type or_(mask_type a, mask_type b) {
+    return _mm256_or_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type xor_(mask_type a, mask_type b) {
+    return _mm256_xor_ps(a, b);
+  }
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type not_(mask_type a) {
+    return _mm256_xor_ps(a, detail_vec8f::zeros);
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static auto simd_as_array(simd_type a) {
+    std::array<scalar_type, size> result;
+    _mm256_storeu_ps(result.data(), a);
+    return result;
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static auto mask_as_array(mask_type a) {
+    std::array<bool, size> result;
+    auto mvmsk = _mm256_movemask_ps(a);
+    for (int i = 0; i < size; i++) {
+      result[i] = mvmsk & (1 << i);
+    }
+    return result;
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static mask_type from_bools(bool a0,
+                                                      bool a1,
+                                                      bool a2,
+                                                      bool a3,
+                                                      bool a4,
+                                                      bool a5,
+                                                      bool a6,
+                                                      bool a7) {
+    return _mm256_castsi256_ps(_mm256_set_epi32(
+        (a7 ? -1 : 0), (a6 ? -1 : 0), (a5 ? -1 : 0), (a4 ? -1 : 0),
+        (a3 ? -1 : 0), (a2 ? -1 : 0), (a1 ? -1 : 0), (a0 ? -1 : 0)));
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static simd_type select(mask_type a,
+                                                  simd_type b,
+                                                  simd_type c) {
+    return _mm256_blendv_ps(c, b, a);
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static bool any(mask_type a) {
+    return _mm256_movemask_ps(a) != 0;
+  }
+
+  AKS_SIMD_OP_FUNC_PREFIX static bool all(mask_type a) {
+    return _mm256_movemask_ps(a) == 0xf;
+  }
+};
+}  // namespace avx
+
+using vec8f = simd::vec<avx::vec8f_spec>;
+using vec8f_mask = simd::mask<avx::vec8f_spec>;
+
+}  // namespace simd
+}  // namespace aks
+
+#endif  // !AKS_SIMD_VEC8F_HPP__
 
 #ifndef AKS_SIMD_COMMON_OPS_HPP
 #define AKS_SIMD_COMMON_OPS_HPP
